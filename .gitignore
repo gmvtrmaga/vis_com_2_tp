@@ -1,3 +1,26 @@
+# Data files ignored
+data/raw/*
+!data/raw/data.zip
+
+data/external/*
+!data/external/.gitkeep
+
+data/interim/*
+!data/interim/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
+
+# Model files ignored
+models/*
+!models/.gitkeep
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
