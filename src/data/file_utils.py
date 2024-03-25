@@ -79,8 +79,12 @@ def check_file_tree(file_tree, logger: Logger):
     negative_count = 0
     paired_subdirectories = {}
 
-    # Check if there are pairs of subdirectories
+    # Check if there are pairs of subdirectories (with correct name)
     for directory, _files in file_tree.items():
+        if NEGATIVE_DIRECTORY not in directory and POSITIVE_DIRECTORY not in directory:
+            logger.warning("Directory with incorrect name:  " + directory)
+            return None
+
         parent_directory = path.dirname(directory)
 
         if parent_directory in paired_subdirectories:
