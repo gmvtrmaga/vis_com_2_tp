@@ -35,7 +35,7 @@ python_path:
 ## Make Dataset
 data: python_path
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/data/make_dataset.py data/raw/train.csv data/interim/house-train.joblib data/interim/house-test.joblib data/interim/house-validation.joblib
+	# TO DEFINE -> src/data/make_dataset.py data/raw/data.zip data/interim
 
 ## Build Features
 features: data
