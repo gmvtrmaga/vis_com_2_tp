@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 from dotenv import find_dotenv, load_dotenv
 
-from file_utils import unzip_file
+from file_utils import unzip_file, file_setup, clean_directory
 
 
 @click.command()
@@ -18,7 +18,9 @@ def main(input_filepath, output_dirpath):
     logger = logging.getLogger(__name__)
     logger.info("extracting data from zip file")
 
+    clean_directory(output_dirpath)
     unzip_file(input_filepath, output_dirpath)
+    file_setup(output_dirpath)
 
 
 if __name__ == "__main__":
