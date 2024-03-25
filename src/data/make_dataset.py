@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-import click
 import logging
 from pathlib import Path
+
+import click
 from dotenv import find_dotenv, load_dotenv
-import zipfile
+
+from file_utils import unzip_file
 
 
 @click.command()
@@ -16,8 +18,7 @@ def main(input_filepath, output_dirpath):
     logger = logging.getLogger(__name__)
     logger.info("extracting data from zip file")
 
-    with zipfile.ZipFile(input_filepath, "r") as zip_ref:
-        zip_ref.extractall(output_dirpath)
+    unzip_file(input_filepath, output_dirpath)
 
 
 if __name__ == "__main__":
