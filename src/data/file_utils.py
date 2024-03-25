@@ -1,8 +1,11 @@
 import zipfile
 from os import walk, path, rename, listdir, remove
 import shutil
+from logging import Logger
 
 GIT_KEEP = ".gitkeep"
+NEGATIVE_DIRECTORY = "Normal"
+POSITIVE_DIRECTORY = "DDH"
 
 
 def clean_directory(target_directory):
@@ -69,3 +72,67 @@ def get_file_tree(target_directory):
             subdirectories_and_files[relative_path] = file_list
 
     return subdirectories_and_files
+
+
+def check_file_tree(file_tree, logger: Logger):
+    positive_count = 0
+    negative_count = 0
+    paired_subdirectories = {}
+
+    # Check if there are pairs of subdirectories
+    for directory, _files in file_tree.items():
+        parent_directory = path.dirname(directory)
+
+        if parent_directory in paired_subdirectories:
+            if paired_subdirectories[parent_directory] is True:
+                logger.warning(
+                    "There are more than 2 directories in parent directory with name "
+                    + parent_directory
+                )
+                return None
+            else:
+                paired_subdirectories[parent_directory] = True
+        else:
+            paired_subdirectories[parent_directory] = False
+
+    for parent_directory, paired in paired_subdirectories.items():
+        if not paired:
+            logger.warning(
+                "There is only one directory in parent directory with name "
+                + parent_directory
+            )
+            return None
+
+    # Iterate over the keys (directories) and values (lists of files) in the dictionary
+    for directory, files in file_tree.items():
+        nFiles = len(files)
+
+        if POSITIVE_DIRECTORY in directory:
+            if positive_count != nFiles:
+                if positive_count == 0:
+                    positive_count = nFiles
+                else:
+                    logger.warning(
+                        "Directories do not have the same number of positive entries: "
+                        + directory
+                    )
+
+                    return None
+        elif NEGATIVE_DIRECTORY:
+            if negative_count != nFiles:
+                if negative_count == 0:
+                    negative_count = nFiles
+                else:
+                    logger.warning(
+                        "Directories do not have the same number of negative entries: "
+                        + directory
+                    )
+
+                    return None
+        else:
+            logger.warning(
+                "The following directory does not have the correct name: " + directory
+            )
+            return None
+
+    return [positive_count, negative_count]

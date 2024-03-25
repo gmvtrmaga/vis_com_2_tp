@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 from dotenv import find_dotenv, load_dotenv
 
-from file_utils import clean_directory, get_file_tree
+from file_utils import clean_directory, get_file_tree, check_file_tree
 
 
 @click.command()
@@ -22,7 +22,18 @@ def main(input_dirpath, output_dirpath):
 
     fileTree = get_file_tree(input_dirpath)
 
-    logger.info(fileTree)
+    logger.info("Checking files...")
+    file_count = check_file_tree(fileTree, logger)
+
+    if file_count is not None:
+        positive_count, negative_count = file_count
+        logger.info(
+            "Files successfully checked: "
+            + str(positive_count)
+            + " positives and "
+            + str(negative_count)
+            + " negatives. "
+        )
 
 
 if __name__ == "__main__":
