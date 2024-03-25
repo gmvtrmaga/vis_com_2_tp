@@ -16,11 +16,17 @@ def main(input_filepath, output_dirpath):
     cleaned data ready to be analyzed (saved in ../processed).
     """
     logger = logging.getLogger(__name__)
-    logger.info("extracting data from zip file")
 
+    logger.info("Cleaning directory")
     clean_directory(output_dirpath)
+
+    logger.info("Extracting data from zip file")
     unzip_file(input_filepath, output_dirpath)
+
+    logger.info("Renaming files")
     file_setup(output_dirpath)
+
+    logger.info("Completed")
 
 
 if __name__ == "__main__":

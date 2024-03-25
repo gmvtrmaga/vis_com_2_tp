@@ -41,7 +41,6 @@ def file_setup(target_directory):
                 )
                 new_file_path = path.join(root, new_file_name)
                 rename(old_file_path, new_file_path)
-                print(f"Renamed: {old_file_path} -> {new_file_path}")
 
     for root, dirs, files in walk(target_directory):
         for index, file_name in enumerate(files, start=1):
@@ -53,4 +52,3 @@ def file_setup(target_directory):
                 )
                 new_file_path = path.join(root, new_file_name)
                 rename(old_file_path, new_file_path)
-                print(f"Renamed: {old_file_path} -> {new_file_path}")
