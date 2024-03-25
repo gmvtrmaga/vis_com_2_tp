@@ -37,6 +37,11 @@ data: python_path
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
 	# TO DEFINE -> src/data/make_dataset.py data/raw/data.zip data/interim
 
+## Split Dataset
+data: python_path
+	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
+	# TO DEFINE -> src/data/split_dataset.py data/interim data/processed
+
 ## Build Features
 features: data
 	#$(PYTHON_INTERPRETER) src/features/build_features.py data/interim/house-train.joblib data/interim/house-test.joblib data/processed/ models/

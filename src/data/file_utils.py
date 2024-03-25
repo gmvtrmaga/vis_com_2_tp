@@ -52,3 +52,20 @@ def file_setup(target_directory):
                 )
                 new_file_path = path.join(root, new_file_name)
                 rename(old_file_path, new_file_path)
+
+
+def get_file_tree(target_directory):
+    subdirectories_and_files = {}
+
+    for root, dirs, files in walk(target_directory):
+        # Relative path from the main directory
+        relative_path = path.relpath(root, target_directory)
+
+        # List of files in the current directory
+        file_list = [file for file in files]
+
+        if len(file_list) > 0 and GIT_KEEP not in file_list:
+            # Store the relative path and list of files in the dictionary
+            subdirectories_and_files[relative_path] = file_list
+
+    return subdirectories_and_files
