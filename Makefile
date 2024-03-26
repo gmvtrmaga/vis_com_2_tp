@@ -40,7 +40,7 @@ data: python_path
 ## Split Dataset
 data: python_path
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/data/split_dataset.py data/interim data/processed
+	# TO DEFINE -> src/data/split_dataset.py data/interim data/processed --random_state 49 --train_size 0.66
 
 ## Build Features
 features: data

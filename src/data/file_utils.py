@@ -1,11 +1,14 @@
-import zipfile
-from os import walk, path, rename, listdir, remove
+import random
 import shutil
+import zipfile
 from logging import Logger
+from os import listdir, makedirs, path, remove, rename, walk
 
 GIT_KEEP = ".gitkeep"
 NEGATIVE_DIRECTORY = "Normal"
 POSITIVE_DIRECTORY = "DDH"
+TRAIN_DIRECTORY = "train"
+TEST_DIRECTORY = "test"
 
 
 def clean_directory(target_directory):
@@ -140,3 +143,67 @@ def check_file_tree(file_tree, logger: Logger):
             return None
 
     return [positive_count, negative_count]
+
+
+def split_train_test_files(
+    input_dirpath, output_dirpath, file_tree, file_count, random_state, train_size
+):
+    positive_count, negative_count = file_count
+    if random_state is not None:
+        random.seed(random_state)  # Set the seed for reproducibility
+
+    total_files = (
+        positive_count + negative_count
+    )  # Positive data files will be form 0 to positive_count. the negative ones will come after these.Padding will be requiered
+    indexes = list(range(0, total_files))  # Generate list of indexes
+    random.shuffle(indexes)  # Shuffle the indexes randomly
+
+    # Calculate the length of the training sublist
+    train_length = int(train_size * total_files)
+
+    # Divide the shuffled list into training and test sublists
+    train_indexes = indexes[:train_length]
+    # test_indexes = indexes[train_length:] -> We dont need to save these references because it will be used an if/else statement
+
+    # Iterate all subfolders of input_directory. Their files would be copied to the output directory following the train/test indexing
+    for directory, files in file_tree.items():
+        # Check subdirectories, create if not exist
+        parent_directory = path.join(output_dirpath, path.dirname(directory))
+        train_directory = path.join(parent_directory, TRAIN_DIRECTORY)
+        train_positive_directory = path.join(train_directory, POSITIVE_DIRECTORY)
+        train_negative_directory = path.join(train_directory, NEGATIVE_DIRECTORY)
+        test_directory = path.join(parent_directory, TEST_DIRECTORY)
+        test_positive_directory = path.join(test_directory, POSITIVE_DIRECTORY)
+        test_negative_directory = path.join(test_directory, NEGATIVE_DIRECTORY)
+
+        if not path.exists(parent_directory):
+            makedirs(parent_directory)
+            makedirs(train_directory)
+            makedirs(train_positive_directory)
+            makedirs(train_negative_directory)
+            makedirs(test_directory)
+            makedirs(test_positive_directory)
+            makedirs(test_negative_directory)
+
+        # If the current file list come from negative data we need to add a padding to the indexes as explained above
+        if POSITIVE_DIRECTORY in directory:
+            target_train_directory = train_positive_directory
+            target_test_directory = test_positive_directory
+            index_padding = 0
+        else:
+            target_train_directory = train_negative_directory
+            target_test_directory = test_negative_directory
+            index_padding = positive_count
+
+        # Iterate subfolder file list
+        for index, filename in enumerate(files):
+            # Rebuild origin filepath
+            origin_filepath = path.join(input_dirpath, directory, filename)
+
+            # If the file index is in the train index list move to train output subfolder. Move to test otherwise
+            if index + index_padding in train_indexes:
+                shutil.copy(
+                    origin_filepath, path.join(target_train_directory, filename)
+                )
+            else:
+                shutil.copy(origin_filepath, path.join(target_test_directory, filename))
