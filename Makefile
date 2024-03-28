@@ -43,20 +43,14 @@ data: python_path
 	# TO DEFINE -> src/data/split_dataset.py data/interim data/processed --random_state 49 --train_size 0.66
 
 ## Build Features
-features: data
-	#$(PYTHON_INTERPRETER) src/features/build_features.py data/interim/house-train.joblib data/interim/house-test.joblib data/processed/ models/
-	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/features/build_features.py data/interim/house-train.joblib data/interim/house-test.joblib data/processed/ models/
+#features: data
+#	#$(PYTHON_INTERPRETER) src/features/build_features.py data/interim/house-train.joblib data/interim/house-test.joblib data/processed/ models/
+#	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
+#	# TO DEFINE -> src/features/build_features.py data/interim/house-train.joblib data/interim/house-test.joblib data/processed/ models/
 
-## Train Model using GridSearch and notebook's parameters
-train_legacy: features
-	#$(PYTHON_INTERPRETER) src/models/train_model.py data/processed/ models/ True
-	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/models/train_model.py data/processed/ models/ True
 
-## Train Model using Optuna
-train: features
-	#$(PYTHON_INTERPRETER) src/models/train_model.py data/processed/ models/ False
+train: data
+	#$(PYTHON_INTERPRETER) src/models/train_model.py data/processed/ models/ models/logs/ 224 ConvModel 1 
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
 	# TO DEFINE -> src/models/train_model.py data/processed/ models/ False
 
