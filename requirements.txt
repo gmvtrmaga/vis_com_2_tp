@@ -2,3 +2,7 @@
 click
 ipykernel
 python-dotenv
+torchvision
+torch
+torchmetrics
+tensorboard
