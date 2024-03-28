@@ -1,14 +1,7 @@
-House Prices - Advanced Regression Techniques
+Heap Displasia Detection (HDC)
 ==============================
 
-Predict sales prices and practice feature engineering, RFs, and gradient boosting
-The data is related with direct marketing campaigns (phone calls) of a Portuguese banking institution. The classification goal is to predict if the client will subscribe a term deposit (variable y).
-
-Acknowledgments
--------------
-
-The Ames Housing dataset was compiled by Dean De Cock for use in data science education. It's an incredible alternative for data scientists looking for a modernized and expanded version of the often cited Boston Housing dataset. 
-https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview
+The objective of this ML project is to predict whether or not an RX image of a heap represents a positive HDC case.
 
 Project Organization
 ------------
