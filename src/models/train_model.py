@@ -8,13 +8,13 @@ import csv
 from pathlib import Path
 
 from train_utils import getTrainTestDataLoaders
-from ConvModel_train import train_ConvModel
+from strategies.ConvModel import train_ConvModel
 
 import click
 from dotenv import find_dotenv, load_dotenv
 
 BATCH_SIZE = 32
-TORCH_SEED = 42
+DEFAULT_TORCH_SEED = 42
 
 TRAIN_HISTORY_FILENAME = 'history.csv'
 TRAINED_MODEL_FILENAME = 'model.mdl'
@@ -26,13 +26,13 @@ TRAINED_MODEL_FILENAME = 'model.mdl'
 @click.argument('image_size', type=click.INT)
 @click.argument('model_to_train')
 @click.argument('train_epochs', type=click.INT)
+@click.option('--random_state', default=DEFAULT_TORCH_SEED, type=click.INT)
 def main(input_filepath, model_filepath, log_output_filepath,
-         image_size, model_to_train, train_epochs):
+         image_size, model_to_train, train_epochs, random_state=DEFAULT_TORCH_SEED):
     """ Trains the selected CNN model using the seleected dataset 
     located at input filepath. 
     """
-    torch.manual_seed(TORCH_SEED)
-    gpu = False
+    torch.manual_seed(random_state)
 
     logger = logging.getLogger(__name__)
     logger.info('Preparing augmentation and datasets')
