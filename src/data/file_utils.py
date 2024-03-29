@@ -5,10 +5,12 @@ from logging import Logger
 from os import listdir, makedirs, path, remove, rename, walk
 
 GIT_KEEP = ".gitkeep"
+
 NEGATIVE_DIRECTORY = "Normal"
 POSITIVE_DIRECTORY = "DDH"
-TRAIN_DIRECTORY = "train"
-TEST_DIRECTORY = "test"
+
+TRAIN_DIRECTORY = "train/"
+VALID_DIRECTORY = "valid/"
 
 
 def clean_directory(target_directory):
@@ -165,14 +167,14 @@ def split_train_test_files(
     train_indexes = indexes[:train_length]
     # test_indexes = indexes[train_length:] -> We dont need to save these references because it will be used an if/else statement
 
-    # Iterate all subfolders of input_directory. Their files would be copied to the output directory following the train/test indexing
+    # Iterate all subfolders of input_directory. TheirY files would be copied to the output directory following the train/test indexing
     for directory, files in file_tree.items():
         # Check subdirectories, create if not exist
         parent_directory = path.join(output_dirpath, path.dirname(directory))
         train_directory = path.join(parent_directory, TRAIN_DIRECTORY)
         train_positive_directory = path.join(train_directory, POSITIVE_DIRECTORY)
         train_negative_directory = path.join(train_directory, NEGATIVE_DIRECTORY)
-        test_directory = path.join(parent_directory, TEST_DIRECTORY)
+        test_directory = path.join(parent_directory, VALID_DIRECTORY)
         test_positive_directory = path.join(test_directory, POSITIVE_DIRECTORY)
         test_negative_directory = path.join(test_directory, NEGATIVE_DIRECTORY)
 
