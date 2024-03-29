@@ -42,17 +42,11 @@ data: python_path
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
 	# TO DEFINE -> src/data/split_dataset.py data/interim data/processed --random_state 49 --train_size 0.66
 
-## Build Features
-#features: data
-#	#$(PYTHON_INTERPRETER) src/features/build_features.py data/interim/house-train.joblib data/interim/house-test.joblib data/processed/ models/
-#	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-#	# TO DEFINE -> src/features/build_features.py data/interim/house-train.joblib data/interim/house-test.joblib data/processed/ models/
-
-
+## Train models
 train: data
-	#$(PYTHON_INTERPRETER) src/models/train_model.py data/processed/ models/ models/logs/ 224 ConvModel 1 
+	#$(PYTHON_INTERPRETER) src/models/train_model.py data/processed/ models/ src/models/logs/ 224 ConvModel 1 --random_state 49
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/models/train_model.py data/processed/ models/ False
+	# TO DEFINE -> src/models/train_model.py data/processed/ models/ src/models/logs/ 224 ConvModel 1 --random_state 49
 
 ## Predict
 predict: train
