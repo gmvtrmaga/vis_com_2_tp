@@ -5,4 +5,5 @@ python-dotenv
 torchvision
 torch
 torchmetrics
+torch-summary
 tensorboard
