@@ -10,7 +10,9 @@ from torchsummary import summary
 from pathlib import Path
 
 from train_utils import getTrainTestDataLoaders, trainModel
+
 from strategies.ConvModel import ConvModelTrainConfig
+from strategies.SqueezeNetModel import SqueezeNetModelTrainConfig
 
 import click
 from dotenv import find_dotenv, load_dotenv
@@ -48,11 +50,13 @@ def main(input_filepath, model_filepath, log_output_filepath,
             logger.info('ConvModel SELECTED')
             logger.info('Training started')
             train_config = ConvModelTrainConfig(image_size)
+        case "SqueezeNet":
+            logger.info('SqueezeNet SELECTED')
+            logger.info('Training started')
+            train_config = SqueezeNetModelTrainConfig()            
         case _:
             logger.error("Invalid option")
             sys.exit()
-
-    summary(train_config.model)
 
     train_history, trained_model = \
         trainModel(train_config.model, train_config.optimizer, train_config.loss,
