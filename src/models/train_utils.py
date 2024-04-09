@@ -1,4 +1,5 @@
 import torch
+import torchvision.transforms as transforms
 import torchvision
 import os
 import math
@@ -12,19 +13,22 @@ from torch.utils.tensorboard import SummaryWriter
 
 def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
 
-    aug_data_transforms = torchvision.transforms.Compose([        
-        torchvision.transforms.Grayscale(num_output_channels=1),
-        torchvision.transforms.Resize(size=(image_size, image_size)),        
-        torchvision.transforms.RandomHorizontalFlip(0.5),
-        torchvision.transforms.RandomResizedCrop(
-            size=(image_size, image_size), scale=(0.5, 1.0)),
-        torchvision.transforms.ToTensor()
+    aug_data_transforms = transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),
+        transforms.Resize(size=(image_size, image_size)),
+        transforms.RandomRotation(
+            (-10, 10), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.RandomHorizontalFlip(0.5),
+        transforms.RandomResizedCrop(
+            size=(image_size, image_size), scale=(0.7, 1.0)),
+        transforms.RandomAutocontrast(),
+        transforms.ToTensor()
     ])
 
-    data_transforms = torchvision.transforms.Compose([
-        torchvision.transforms.Grayscale(num_output_channels=1),
-        torchvision.transforms.Resize(size=(image_size, image_size)),
-        torchvision.transforms.ToTensor()
+    data_transforms = transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),
+        transforms.Resize(size=(image_size, image_size)),
+        transforms.ToTensor()
     ])
 
     base_path = os.path.join(input_filepath, str(image_size) + '/')
@@ -88,7 +92,7 @@ def trainModel(model, optimizer, criterion, metric, train_loader, valid_loader,
             loss.backward()
             optimizer.step()
 
-            specificity = metric(output, train_target)            
+            specificity = metric(output, train_target)
             epoch_train_specificity += specificity.item()
 
         epoch_train_loss = epoch_train_loss / len(train_loader)
@@ -110,7 +114,8 @@ def trainModel(model, optimizer, criterion, metric, train_loader, valid_loader,
 
             output = model(valid_data.float())
             epoch_valid_loss += criterion(output, valid_target.float()).item()
-            epoch_valid_specificity += metric(output, valid_target.float()).item()
+            epoch_valid_specificity += metric(output,
+                                              valid_target.float()).item()
 
         epoch_valid_loss = epoch_valid_loss / len(valid_loader)
         epoch_valid_specificity = epoch_valid_specificity / len(valid_loader)
@@ -124,8 +129,10 @@ def trainModel(model, optimizer, criterion, metric, train_loader, valid_loader,
         if tensorboard_log:
             train_writer.add_scalar("loss", epoch_train_loss, epoch)
             valid_writer.add_scalar("loss", epoch_valid_loss, epoch)
-            train_writer.add_scalar("specificity", epoch_train_specificity, epoch)
-            valid_writer.add_scalar("specificity", epoch_valid_specificity, epoch)
+            train_writer.add_scalar(
+                "specificity", epoch_train_specificity, epoch)
+            valid_writer.add_scalar(
+                "specificity", epoch_valid_specificity, epoch)
             train_writer.flush()
             valid_writer.flush()
 
@@ -137,7 +144,8 @@ def trainModel(model, optimizer, criterion, metric, train_loader, valid_loader,
     return history, model
 
 
-def get_linear_from_conv_block(conv_blocks: Iterable[Iterable], h_in: int, w_in: int, out_features: int):
+def get_linear_from_conv_block(conv_blocks: Iterable[Iterable] | torch.nn.Module,
+                               in_size: tuple[int, int],  out_features: int):
     def get_output_size(layer: torch.nn.Conv2d | torch.nn.MaxPool2d, h_in: int, w_in: int):
 
         def to_list(value: int | Iterable[int]) -> list:
@@ -165,10 +173,33 @@ def get_linear_from_conv_block(conv_blocks: Iterable[Iterable], h_in: int, w_in:
 
         return h_out, w_out
 
-    for conv_block in conv_blocks:
-        h_in, w_in = get_output_size(conv_block[0], h_in, w_in)
-        h_in, w_in = get_output_size(conv_block[1], h_in, w_in)
+    CONV_ATTR_SUFIX = 'conv'
+    POOL_ATTR_SUFIX = 'pool'
 
-    size = conv_blocks[-1][0].out_channels*h_in*w_in
+    w_in, h_in = in_size
 
-    return torch.nn.Linear(in_features=size, out_features=out_features)
+    if isinstance(conv_blocks, torch.nn.Module):
+        object_attrs = conv_blocks.__dict__['_modules']
+        index = 1
+
+        while (CONV_ATTR_SUFIX + str(index)) in object_attrs.keys():
+            h_in, w_in = get_output_size(
+                object_attrs[CONV_ATTR_SUFIX + str(index)], h_in, w_in)
+
+            pooling_attr_name = POOL_ATTR_SUFIX + str(index)
+            if pooling_attr_name in object_attrs.keys():
+                h_in, w_in = get_output_size(
+                    object_attrs[pooling_attr_name], h_in, w_in)
+
+            index += 1
+
+        out_channels = object_attrs[CONV_ATTR_SUFIX +
+                                    str(index-1)].out_channels
+    else:
+        for conv_block in conv_blocks:
+            h_in, w_in = get_output_size(conv_block[0], h_in, w_in)
+            h_in, w_in = get_output_size(conv_block[1], h_in, w_in)
+
+        out_channels = conv_blocks[-1][0].out_channels
+
+    return torch.nn.Linear(in_features=out_channels*h_in*w_in, out_features=out_features)
