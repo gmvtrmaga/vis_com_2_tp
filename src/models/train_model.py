@@ -5,7 +5,6 @@ import os
 import csv
 
 from torch import manual_seed, save
-from torchsummary import summary
 
 from pathlib import Path
 
@@ -18,7 +17,7 @@ from strategies.ResNet18Model import ResNet18ModelTrainConfig
 import click
 from dotenv import find_dotenv, load_dotenv
 
-BATCH_SIZE = 64
+DEFAULT_BATCH_SIZE = 64
 DEFAULT_TORCH_SEED = 42
 DEFAULT_N_FREEZE = 1
 
@@ -35,9 +34,10 @@ TRAINED_MODEL_FILENAME = 'model.mdl'
 @click.argument('train_epochs', type=click.INT)
 @click.option('--random_state', default=DEFAULT_TORCH_SEED, type=click.INT)
 @click.option('--n_freeze', default=DEFAULT_N_FREEZE, type=click.INT)
+@click.option('--batch_size', default=DEFAULT_BATCH_SIZE, type=click.INT)
 def main(input_filepath, model_filepath, log_output_filepath,
          image_size, model_to_train, train_epochs, random_state=DEFAULT_TORCH_SEED,
-         n_freeze=DEFAULT_N_FREEZE):
+         n_freeze=DEFAULT_N_FREEZE,batch_size=DEFAULT_BATCH_SIZE):
     """ Trains the selected CNN model using the seleected dataset 
     located at input filepath. 
     """
@@ -47,7 +47,7 @@ def main(input_filepath, model_filepath, log_output_filepath,
     logger.info('Preparing augmentation and datasets')
 
     train_loader, valid_loader = \
-        getTrainTestDataLoaders(input_filepath, image_size, BATCH_SIZE)
+        getTrainTestDataLoaders(input_filepath, image_size, batch_size)
 
     match model_to_train:
         case "ConvModel":
