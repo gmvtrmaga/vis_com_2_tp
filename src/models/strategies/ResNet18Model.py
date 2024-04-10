@@ -19,12 +19,15 @@ class CustomResNet18Net(torch.nn.Module):
             for param in getattr(self.resNet18, layer_name).parameters():
                 param.requires_grad = True
 
-        self.resNet18.fc = torch.nn.Linear(in_features=512, out_features=1, bias=True)
+        self.resNet18.fc = torch.nn.Linear(in_features=512, out_features=4096, bias=True)
+        self.fc1 = torch.nn.Linear(in_features=4096, out_features=1024, bias=True)
+        self.fc2 = torch.nn.Linear(in_features=1024, out_features=1, bias=True)
 
     def forward(self, x):
         x = torch.cat((x, x, x), axis=1)
-        return self.resNet18.forward(x).flatten()
-
+        x = torch.relu(self.resNet18.forward(x))
+        x = torch.relu(self.fc1(x))
+        return torch.sigmoid(self.fc2(x)).flatten()
 
 class ResNet18ModelTrainConfig():
     def __init__(self, n_freeze: int) -> None:
