@@ -20,7 +20,7 @@ class CustomSqueezeNet(torch.nn.Module):
 
     def forward(self, x):
         x = torch.cat((x, x, x), axis=1)
-        return self.squeezeNet.forward(x).flatten()
+        return torch.sigmoid(self.squeezeNet.forward(x).flatten())
 
 
 class SqueezeNetModelTrainConfig:
