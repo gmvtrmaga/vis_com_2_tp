@@ -1,6 +1,7 @@
 import torch
-import torchvision
 import torchmetrics
+import torchvision
+
 
 class CustomResNet18Net(torch.nn.Module):
     RESENT18_LAYERS = 4
@@ -9,8 +10,9 @@ class CustomResNet18Net(torch.nn.Module):
         super().__init__(*args, **kwargs)
 
         self.resNet18 = torchvision.models.resnet18(
-            weights=torchvision.models.ResNet18_Weights.DEFAULT)
-        
+            weights=torchvision.models.ResNet18_Weights.DEFAULT
+        )
+
         for param in self.resNet18.parameters():
             param.requires_grad = False
 
@@ -19,7 +21,9 @@ class CustomResNet18Net(torch.nn.Module):
             for param in getattr(self.resNet18, layer_name).parameters():
                 param.requires_grad = True
 
-        self.resNet18.fc = torch.nn.Linear(in_features=512, out_features=4096, bias=True)
+        self.resNet18.fc = torch.nn.Linear(
+            in_features=512, out_features=4096, bias=True
+        )
         self.fc1 = torch.nn.Linear(in_features=4096, out_features=1024, bias=True)
         self.fc2 = torch.nn.Linear(in_features=1024, out_features=1, bias=True)
 
@@ -29,9 +33,10 @@ class CustomResNet18Net(torch.nn.Module):
         x = torch.relu(self.fc1(x))
         return torch.sigmoid(self.fc2(x)).flatten()
 
-class ResNet18ModelTrainConfig():
-    def __init__(self, n_freeze: int) -> None:
+
+class ResNet18ModelTrainConfig:
+    def __init__(self, n_freeze: int, lr: float) -> None:
         self.model = CustomResNet18Net(n_freeze)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.loss = torch.nn.BCEWithLogitsLoss()
         self.metric = torchmetrics.classification.BinarySpecificity()
