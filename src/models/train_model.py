@@ -13,12 +13,14 @@ from train_utils import getTrainTestDataLoaders, trainModel
 
 from strategies.ConvModel import ConvModelTrainConfig
 from strategies.SqueezeNetModel import SqueezeNetModelTrainConfig
+from strategies.ResNet18Model import ResNet18ModelTrainConfig
 
 import click
 from dotenv import find_dotenv, load_dotenv
 
 BATCH_SIZE = 64
 DEFAULT_TORCH_SEED = 42
+DEFAULT_N_FREEZE = 1
 
 TRAIN_HISTORY_FILENAME = 'history.csv'
 TRAINED_MODEL_FILENAME = 'model.mdl'
@@ -32,8 +34,10 @@ TRAINED_MODEL_FILENAME = 'model.mdl'
 @click.argument('model_to_train')
 @click.argument('train_epochs', type=click.INT)
 @click.option('--random_state', default=DEFAULT_TORCH_SEED, type=click.INT)
+@click.option('--n_freeze', default=DEFAULT_N_FREEZE, type=click.INT)
 def main(input_filepath, model_filepath, log_output_filepath,
-         image_size, model_to_train, train_epochs, random_state=DEFAULT_TORCH_SEED):
+         image_size, model_to_train, train_epochs, random_state=DEFAULT_TORCH_SEED,
+         n_freeze=DEFAULT_N_FREEZE):
     """ Trains the selected CNN model using the seleected dataset 
     located at input filepath. 
     """
@@ -48,16 +52,18 @@ def main(input_filepath, model_filepath, log_output_filepath,
     match model_to_train:
         case "ConvModel":
             logger.info('ConvModel SELECTED')
-            logger.info('Training started')
             train_config = ConvModelTrainConfig(image_size)
         case "SqueezeNet":
             logger.info('SqueezeNet SELECTED')
-            logger.info('Training started')
-            train_config = SqueezeNetModelTrainConfig()            
+            train_config = SqueezeNetModelTrainConfig(n_freeze)
+        case "ResNet18":
+            logger.info('ResNet18 SELECTED')
+            train_config = ResNet18ModelTrainConfig(n_freeze)                      
         case _:
             logger.error("Invalid option")
             sys.exit()
 
+    logger.info('Training started')
     train_history, trained_model = \
         trainModel(train_config.model, train_config.optimizer, train_config.loss,
                    train_config.metric, train_loader, valid_loader, train_epochs,
