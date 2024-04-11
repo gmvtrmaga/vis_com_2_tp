@@ -11,7 +11,6 @@ class CustomSqueezeNet(torch.nn.Module):
             weights=torchvision.models.SqueezeNet1_1_Weights.DEFAULT
         )
 
-        # Las n_freeze últimos grupos del features se liberan para entrenamiento
         for param in list(self.squeezeNet.features.parameters())[:-n_freeze]:
             param.requires_grad = False
 
@@ -28,4 +27,7 @@ class SqueezeNetModelTrainConfig:
         self.model = CustomSqueezeNet(n_freeze)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.loss = torch.nn.BCEWithLogitsLoss()
-        self.metric = torchmetrics.classification.BinarySpecificity()
+        self.metrics = {'F1': torchmetrics.F1Score(task='binary'),
+                        'Accuracy': torchmetrics.Accuracy(task='binary'),
+                        'Recall': torchmetrics.Recall(task='binary'),
+                        'Specificity': torchmetrics.classification.BinarySpecificity()}

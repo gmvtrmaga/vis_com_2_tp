@@ -39,4 +39,7 @@ class ResNet18ModelTrainConfig:
         self.model = CustomResNet18Net(n_freeze)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.loss = torch.nn.BCEWithLogitsLoss()
-        self.metric = torchmetrics.classification.BinarySpecificity()
+        self.metrics = {'F1': torchmetrics.F1Score(task='binary'),
+                        'Accuracy': torchmetrics.Accuracy(task='binary'),
+                        'Recall': torchmetrics.Recall(task='binary'),
+                        'Specificity': torchmetrics.classification.BinarySpecificity()}

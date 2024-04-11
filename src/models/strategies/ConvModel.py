@@ -22,7 +22,8 @@ class ConvModel(torch.nn.Module):
         self.pool3 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.fc1 = get_linear_from_conv_block(
-            conv_blocks=self, in_size=(image_size, image_size), out_features=512
+            conv_blocks=self, in_size=(
+                image_size, image_size), out_features=512
         )
 
         self.fc2 = torch.nn.Linear(in_features=512, out_features=1)
@@ -42,4 +43,7 @@ class ConvModelTrainConfig:
         self.model = ConvModel(image_size)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.loss = torch.nn.BCEWithLogitsLoss()
-        self.metric = torchmetrics.classification.BinarySpecificity()
+        self.metrics = {'F1': torchmetrics.F1Score(task='binary'),
+                        'Accuracy': torchmetrics.Accuracy(task='binary'),
+                        'Recall': torchmetrics.Recall(task='binary'),
+                        'Specificity': torchmetrics.classification.BinarySpecificity()}
