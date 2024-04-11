@@ -3,11 +3,9 @@ import torchmetrics
 import torchvision
 
 N_LAYERS_TO_KEEP = 8
-CONV_LAYERS_SIZE = 186624
-
 
 class CustomSqueezeNet(torch.nn.Module):
-    def __init__(self, n_freeze: int, *args, **kwargs) -> None:
+    def __init__(self, image_size: int, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.squeezeNet = torchvision.models.squeezenet1_1(
@@ -16,9 +14,16 @@ class CustomSqueezeNet(torch.nn.Module):
 
         for param in self.squeezeNet.parameters():
             param.requires_grad = False
+        
+        # Obtiene el tamaño de salida de la última capa que se toma
+        # del modelo
+        y = torch.zeros([1, 3, image_size, image_size])
+        for i in range(N_LAYERS_TO_KEEP):
+            y = self.squeezeNet.features[i].forward(y)
+        out_size = torch.flatten(y, start_dim=1).shape[1]
 
-        self.fc1 = torch.nn.Linear(
-            in_features=CONV_LAYERS_SIZE, out_features=512, bias=True)
+
+        self.fc1 = torch.nn.Linear(in_features=out_size, out_features=512, bias=True)
         self.fc2 = torch.nn.Linear(in_features=512, out_features=1, bias=True)
 
     def forward(self, x):
@@ -32,8 +37,8 @@ class CustomSqueezeNet(torch.nn.Module):
 
 
 class SqueezeNetModelTrainConfig:
-    def __init__(self, n_freeze: int, lr: float) -> None:
-        self.model = CustomSqueezeNet(n_freeze)
+    def __init__(self, image_size: int, lr: float) -> None:
+        self.model = CustomSqueezeNet(image_size)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.loss = torch.nn.BCEWithLogitsLoss()
         self.metrics = {'F1': torchmetrics.F1Score(task='binary'),

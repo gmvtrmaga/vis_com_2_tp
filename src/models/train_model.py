@@ -63,7 +63,7 @@ def main(
             train_config = ConvModelTrainConfig(image_size, learning_rate)
         case "SqueezeNet":
             logger.info("SqueezeNet SELECTED")
-            train_config = SqueezeNetModelTrainConfig(n_unfreeze, learning_rate)
+            train_config = SqueezeNetModelTrainConfig(image_size, learning_rate)
         case "ResNet18":
             logger.info("ResNet18 SELECTED")
             train_config = ResNet18ModelTrainConfig(n_unfreeze, learning_rate)
