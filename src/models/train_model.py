@@ -76,7 +76,7 @@ def main(
         train_config.model,
         train_config.optimizer,
         train_config.loss,
-        train_config.metric,
+        train_config.metrics,
         train_loader,
         valid_loader,
         train_epochs,

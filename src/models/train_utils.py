@@ -60,7 +60,7 @@ def trainModel(
     model,
     optimizer,
     criterion,
-    metric,
+    metrics,
     train_loader,
     valid_loader,
     epochs,
@@ -83,12 +83,15 @@ def trainModel(
 
     if torch.cuda.is_available():
         model.to("cuda")
-        metric.to("cuda")
+        for metric in metrics.values(): 
+            metric.to("cuda")
 
     train_loss = []
-    train_acc = []
+    train_metrics = []
+
     valid_loss = []
-    valid_acc = []
+    valid_metrics = []
+
     time_ini = time.time()
     
     for epoch in range(epochs):
@@ -97,7 +100,7 @@ def trainModel(
         model.train()
 
         epoch_train_loss = 0.0
-        epoch_train_specificity = 0.0
+        epoch_train_metrics = dict([(name, 0) for name, _ in metrics.items()])
 
         for train_data, train_target in train_loader:
             if torch.cuda.is_available():
@@ -111,20 +114,24 @@ def trainModel(
             loss.backward()
             optimizer.step()
 
-            specificity = metric(output, train_target)
-            epoch_train_specificity += specificity.item()
+            for m_name, m_function in metrics.items():
+                m_value = m_function(output, train_target.float())
+                epoch_train_metrics[m_name] += m_value.item()
+            
 
         epoch_train_loss = epoch_train_loss / len(train_loader)
-        epoch_train_specificity = epoch_train_specificity / len(train_loader)
-
         train_loss.append(epoch_train_loss)
-        train_acc.append(epoch_train_specificity)
+
+        for m_name, _ in metrics.items():
+            epoch_train_metrics[m_name] = epoch_train_metrics[m_name] / len(train_loader)
+        
+        train_metrics.append(epoch_train_metrics)
 
         # Pongo el modelo en modo testeo
         model.eval()
 
         epoch_valid_loss = 0.0
-        epoch_valid_specificity = 0.0
+        epoch_valid_metrics = dict([(name, 0) for name, _ in metrics.items()])
 
         for valid_data, valid_target in valid_loader:
             if torch.cuda.is_available():
@@ -133,42 +140,57 @@ def trainModel(
 
             output = model(valid_data.float())
             epoch_valid_loss += criterion(output, valid_target.float()).item()
-            epoch_valid_specificity += metric(output, valid_target.float()).item()
+
+            for m_name, m_function in metrics.items():
+                m_value = m_function(output, valid_target.float())
+                epoch_valid_metrics[m_name] += m_value.item()
+
+            # epoch_valid_specificity += metric(output, valid_target.float()).item()
 
         epoch_valid_loss = epoch_valid_loss / len(valid_loader)
-        epoch_valid_specificity = epoch_valid_specificity / len(valid_loader)
-
         valid_loss.append(epoch_valid_loss)
-        valid_acc.append(epoch_valid_specificity)
+
+        for m_name, _ in metrics.items():
+            epoch_valid_metrics[m_name] = epoch_valid_metrics[m_name] / len(train_loader)
+        
+        valid_metrics.append(epoch_valid_metrics)
 
         time_now = time.time()
         time_iter = time_now - time_ini
+
         print(
-            "Epoch: {}/{} (Time: {:.2f} s) - Train loss {:.6f} - Train Specificity {:.6f} - Valid Loss {:.6f} - Valid Specificity {:.6f}".format(
+            "Epoch: {}/{} (Time: {:.2f} s) - Train loss {:.6f} - Train metrics {} - Valid Loss {:.6f} - Valid metrics {}".format(
                 epoch + 1,
                 epochs,
                 time_iter,
                 epoch_train_loss,
-                epoch_train_specificity,
+                str(epoch_train_metrics),
                 epoch_valid_loss,
-                epoch_valid_specificity,
+                str(epoch_valid_metrics),
             )
         )
 
         if tensorboard_log:
             train_writer.add_scalar("training time", time_iter, epoch)
+            
             train_writer.add_scalar("loss", epoch_train_loss, epoch)
             valid_writer.add_scalar("loss", epoch_valid_loss, epoch)
-            train_writer.add_scalar("specificity", epoch_train_specificity, epoch)
-            valid_writer.add_scalar("specificity", epoch_valid_specificity, epoch)
-            train_writer.flush()
+            
+            for m_name, m_value in epoch_train_metrics.items():
+                train_writer.add_scalar(m_name, m_value, epoch)
+        
+            for m_name, m_value in epoch_valid_metrics.items():
+                valid_writer.add_scalar(m_name, m_value, epoch)
+
             valid_writer.flush()
+            train_writer.flush()
+            
 
     history = {
         "train_loss": train_loss,
-        "train_acc": train_acc,
+        "train_metrics": train_metrics,
         "valid_loss": valid_loss,
-        "valid_acc": valid_acc,
+        "valid_metrics": valid_metrics,
     }
 
     return history, model
