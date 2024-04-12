@@ -8,8 +8,7 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.tensorboard import SummaryWriter
 
-from src.data.file_utils import (TRAIN_DIRECTORY, VALID_DIRECTORY,
-                                 clean_directory)
+from src.data.file_utils import TRAIN_DIRECTORY, VALID_DIRECTORY, clean_directory
 
 
 def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
@@ -169,7 +168,7 @@ def trainModel(
         time_iter = time_now - time_ini
 
         print(
-            "Epoch: {}/{} (Time: {:.2f} s) - Train loss {:.6f} - Train metrics {} - Valid Loss {:.6f} - Valid metrics {}".format(
+            "Epoch: {}/{} (Time: {:.2f} s)\n\tTrain: loss {:.6f} - Metrics {}\n\tValid: Loss {:.6f} - Metrics {}\n".format(
                 epoch + 1,
                 epochs,
                 time_iter,
