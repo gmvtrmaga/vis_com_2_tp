@@ -2,6 +2,7 @@ import torch
 import torchmetrics
 import torchvision
 
+DROPOUT_P = 0.3
 
 class CustomResNet18Net(torch.nn.Module):
     RESENT18_LAYERS = 4
@@ -26,11 +27,11 @@ class CustomResNet18Net(torch.nn.Module):
         )
 
         self.act_fc = torch.nn.ReLU()
-        self.dropout_fc = torch.nn.Dropout(0.2)
+        self.dropout_fc = torch.nn.Dropout(p=DROPOUT_P)
 
         self.fc1 = torch.nn.Linear(in_features=4096, out_features=1024, bias=True)
         self.act_fc1 = torch.nn.ReLU()
-        self.dropout_fc1 = torch.nn.Dropout(0.2)
+        self.dropout_fc1 = torch.nn.Dropout(p=DROPOUT_P)
 
         self.fc2 = torch.nn.Linear(in_features=1024, out_features=1, bias=True)
         self.act_fc2 = torch.nn.Sigmoid()
