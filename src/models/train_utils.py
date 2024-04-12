@@ -8,30 +8,32 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.tensorboard import SummaryWriter
 
-from src.data.file_utils import TRAIN_DIRECTORY, VALID_DIRECTORY, clean_directory
+from src.data.file_utils import (TRAIN_DIRECTORY, VALID_DIRECTORY,
+                                 clean_directory)
 
 
 def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
 
     aug_data_transforms = transforms.Compose(
         [
-            transforms.Grayscale(num_output_channels=1),
+            # transforms.Grayscale(num_output_channels=1),
             transforms.Resize(size=(image_size, image_size)),
-            transforms.RandomRotation(
-                (-10, 10), interpolation=transforms.InterpolationMode.BILINEAR
-            ),
-            transforms.RandomHorizontalFlip(0.5),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+            # transforms.RandomRotation(
+            #     (-10, 10), interpolation=transforms.InterpolationMode.BILINEAR
+            # ),
+            # transforms.RandomHorizontalFlip(0.5),
             transforms.RandomResizedCrop(
                 size=(image_size, image_size), scale=(0.7, 1.0)
             ),
-            transforms.RandomAutocontrast(),
+            # transforms.RandomAutocontrast(),
             transforms.ToTensor(),
         ]
     )
 
     data_transforms = transforms.Compose(
         [
-            transforms.Grayscale(num_output_channels=1),
+            # transforms.Grayscale(num_output_channels=1),
             transforms.Resize(size=(image_size, image_size)),
             transforms.ToTensor(),
         ]
@@ -78,13 +80,20 @@ def trainModel(
         train_writer = SummaryWriter(log_dir=register_path_train)
         valid_writer = SummaryWriter(log_dir=register_path_valid)
 
-        train_writer.add_graph(model, torch.zeros((1, 1, image_size, image_size)))
-        valid_writer.add_graph(model, torch.zeros((1, 1, image_size, image_size)))
+        # train_writer.add_graph(model, torch.zeros((1, 1, image_size, image_size)))
+        # valid_writer.add_graph(model, torch.zeros((1, 1, image_size, image_size)))
 
     if torch.cuda.is_available():
-        model.to("cuda")
-        for metric in metrics.values(): 
-            metric.to("cuda")
+        device = torch.device("cuda")
+        print("CUDA is available! Using GPU.")
+        print("GPU Device Name:", torch.cuda.get_device_name(0))
+    else:
+        device = torch.device("cpu")
+        print("CUDA is not available. Using CPU.")
+
+    model.to(device)
+    for metric in metrics.values():
+        metric.to(device)
 
     train_loss = []
     train_metrics = []
@@ -93,7 +102,7 @@ def trainModel(
     valid_metrics = []
 
     time_ini = time.time()
-    
+
     for epoch in range(epochs):
 
         # Pongo el modelo en modo entrenamiento
@@ -103,9 +112,8 @@ def trainModel(
         epoch_train_metrics = dict([(name, 0) for name, _ in metrics.items()])
 
         for train_data, train_target in train_loader:
-            if torch.cuda.is_available():
-                train_data = train_data.to("cuda")
-                train_target = train_target.to("cuda")
+            train_data = train_data.to(device)
+            train_target = train_target.to(device)
 
             optimizer.zero_grad()
             output = model(train_data.float())
@@ -117,14 +125,15 @@ def trainModel(
             for m_name, m_function in metrics.items():
                 m_value = m_function(output, train_target.float())
                 epoch_train_metrics[m_name] += m_value.item()
-            
 
         epoch_train_loss = epoch_train_loss / len(train_loader)
         train_loss.append(epoch_train_loss)
 
         for m_name, _ in metrics.items():
-            epoch_train_metrics[m_name] = epoch_train_metrics[m_name] / len(train_loader)
-        
+            epoch_train_metrics[m_name] = epoch_train_metrics[m_name] / len(
+                train_loader
+            )
+
         train_metrics.append(epoch_train_metrics)
 
         # Pongo el modelo en modo testeo
@@ -134,9 +143,8 @@ def trainModel(
         epoch_valid_metrics = dict([(name, 0) for name, _ in metrics.items()])
 
         for valid_data, valid_target in valid_loader:
-            if torch.cuda.is_available():
-                valid_data = valid_data.to("cuda")
-                valid_target = valid_target.to("cuda")
+            valid_data = valid_data.to(device)
+            valid_target = valid_target.to(device)
 
             output = model(valid_data.float())
             epoch_valid_loss += criterion(output, valid_target.float()).item()
@@ -151,8 +159,10 @@ def trainModel(
         valid_loss.append(epoch_valid_loss)
 
         for m_name, _ in metrics.items():
-            epoch_valid_metrics[m_name] = epoch_valid_metrics[m_name] / len(train_loader)
-        
+            epoch_valid_metrics[m_name] = epoch_valid_metrics[m_name] / len(
+                train_loader
+            )
+
         valid_metrics.append(epoch_valid_metrics)
 
         time_now = time.time()
@@ -172,19 +182,18 @@ def trainModel(
 
         if tensorboard_log:
             train_writer.add_scalar("training time", time_iter, epoch)
-            
+
             train_writer.add_scalar("loss", epoch_train_loss, epoch)
             valid_writer.add_scalar("loss", epoch_valid_loss, epoch)
-            
+
             for m_name, m_value in epoch_train_metrics.items():
                 train_writer.add_scalar(m_name, m_value, epoch)
-        
+
             for m_name, m_value in epoch_valid_metrics.items():
                 valid_writer.add_scalar(m_name, m_value, epoch)
 
             valid_writer.flush()
             train_writer.flush()
-            
 
     history = {
         "train_loss": train_loss,
