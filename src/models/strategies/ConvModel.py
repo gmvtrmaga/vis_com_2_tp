@@ -7,7 +7,7 @@ class ConvModel(torch.nn.Module):
     def __init__(self, image_size):
         super().__init__()
         self.conv1 = torch.nn.Conv2d(
-            in_channels=1, out_channels=16, kernel_size=3, stride=1, padding="same"
+            in_channels=3, out_channels=16, kernel_size=3, stride=1, padding="same"
         )
         self.pool1 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
 
