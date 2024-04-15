@@ -35,7 +35,7 @@ class CustomResNet18Net(torch.nn.Module):
 class ResNet18ModelTrainConfig:
     def __init__(self, n_freeze: int, lr: float) -> None:
         self.model = CustomResNet18Net(n_freeze)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=1e-5)
         self.loss = torch.nn.BCELoss()
         self.metrics = {'F1': torchmetrics.F1Score(task='binary'),
                         'Accuracy': torchmetrics.Accuracy(task='binary'),
