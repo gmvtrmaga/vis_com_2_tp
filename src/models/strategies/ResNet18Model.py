@@ -4,6 +4,7 @@ import torchvision
 
 DROPOUT_P = 0.3
 
+
 class CustomResNet18Net(torch.nn.Module):
     RESENT18_LAYERS = 4
 
@@ -23,34 +24,20 @@ class CustomResNet18Net(torch.nn.Module):
                 param.requires_grad = True
 
         self.resNet18.fc = torch.nn.Linear(
-            in_features=512, out_features=4096, bias=True
+            in_features=512, out_features=1, bias=True
         )
 
-        self.act_fc = torch.nn.ReLU()
-        self.dropout_fc = torch.nn.Dropout(p=DROPOUT_P)
-
-        self.fc1 = torch.nn.Linear(in_features=4096, out_features=1024, bias=True)
-        self.act_fc1 = torch.nn.ReLU()
-        self.dropout_fc1 = torch.nn.Dropout(p=DROPOUT_P)
-
-        self.fc2 = torch.nn.Linear(in_features=1024, out_features=1, bias=True)
-        self.act_fc2 = torch.nn.Sigmoid()
+        self.act_fc = torch.nn.Sigmoid()
 
     def forward(self, x):
-        x = self.act_fc(self.resNet18.forward(x))
-        x = self.dropout_fc(x)
-
-        x = self.act_fc1(self.fc1(x))
-        x = self.dropout_fc1(x)
-
-        return self.act_fc2(self.fc2(x)).flatten()
+        return self.act_fc(self.resNet18.forward(x)).flatten()
 
 
 class ResNet18ModelTrainConfig:
     def __init__(self, n_freeze: int, lr: float) -> None:
         self.model = CustomResNet18Net(n_freeze)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
-        self.loss = torch.nn.BCEWithLogitsLoss()
+        self.loss = torch.nn.BCELoss()
         self.metrics = {'F1': torchmetrics.F1Score(task='binary'),
                         'Accuracy': torchmetrics.Accuracy(task='binary'),
                         'Recall': torchmetrics.Recall(task='binary'),
