@@ -13,28 +13,31 @@ from src.data.file_utils import TRAIN_DIRECTORY, VALID_DIRECTORY, clean_director
 
 def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
 
+    # https://stackoverflow.com/questions/58151507/why-pytorch-officially-use-mean-0-485-0-456-0-406-and-std-0-229-0-224-0-2
+    IMAGE_NET_MEAN = [0.485, 0.456, 0.406]
+    IMAGE_NET_STD = [0.229, 0.224, 0.225]
+
     aug_data_transforms = transforms.Compose(
         [
-            # transforms.Grayscale(num_output_channels=1),
             transforms.Resize(size=(image_size, image_size)),
-            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-            # transforms.RandomRotation(
-            #     (-10, 10), interpolation=transforms.InterpolationMode.BILINEAR
-            # ),
-            # transforms.RandomHorizontalFlip(0.5),
+            transforms.RandomAffine(degrees=(-10, 10), translate=(0.1, 0.1)),
+            transforms.RandomHorizontalFlip(0.5),
             transforms.RandomResizedCrop(
                 size=(image_size, image_size), scale=(0.7, 1.0)
             ),
-            # transforms.RandomAutocontrast(),
+            transforms.RandomAutocontrast(),
+            transforms.RandomAdjustSharpness(),
+
             transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)
         ]
     )
 
     data_transforms = transforms.Compose(
         [
-            # transforms.Grayscale(num_output_channels=1),
             transforms.Resize(size=(image_size, image_size)),
             transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)
         ]
     )
 
@@ -66,8 +69,7 @@ def trainModel(
     valid_loader,
     epochs,
     tensorboard_log,
-    register_path,
-    image_size,
+    register_path
 ):
 
     if tensorboard_log:
@@ -78,9 +80,6 @@ def trainModel(
 
         train_writer = SummaryWriter(log_dir=register_path_train)
         valid_writer = SummaryWriter(log_dir=register_path_valid)
-
-        # train_writer.add_graph(model, torch.zeros((1, 1, image_size, image_size)))
-        # valid_writer.add_graph(model, torch.zeros((1, 1, image_size, image_size)))
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -104,7 +103,6 @@ def trainModel(
 
     for epoch in range(epochs):
 
-        # Pongo el modelo en modo entrenamiento
         model.train()
 
         epoch_train_loss = 0.0
@@ -135,7 +133,6 @@ def trainModel(
 
         train_metrics.append(epoch_train_metrics)
 
-        # Pongo el modelo en modo testeo
         model.eval()
 
         epoch_valid_loss = 0.0
@@ -151,8 +148,6 @@ def trainModel(
             for m_name, m_function in metrics.items():
                 m_value = m_function(output, valid_target.float())
                 epoch_valid_metrics[m_name] += m_value.item()
-
-            # epoch_valid_specificity += metric(output, valid_target.float()).item()
 
         epoch_valid_loss = epoch_valid_loss / len(valid_loader)
         valid_loss.append(epoch_valid_loss)
@@ -231,8 +226,10 @@ def get_linear_from_conv_block(
 
         kernel_size = to_list(layer.kernel_size)
 
-        h_out = calculate_size(h_in, padd[0], dilat[0], kernel_size[0], stride[0])
-        w_out = calculate_size(w_in, padd[1], dilat[1], kernel_size[1], stride[1])
+        h_out = calculate_size(
+            h_in, padd[0], dilat[0], kernel_size[0], stride[0])
+        w_out = calculate_size(
+            w_in, padd[1], dilat[1], kernel_size[1], stride[1])
 
         return h_out, w_out
 
@@ -258,7 +255,8 @@ def get_linear_from_conv_block(
 
             index += 1
 
-        out_channels = object_attrs[CONV_ATTR_SUFIX + str(index - 1)].out_channels
+        out_channels = object_attrs[CONV_ATTR_SUFIX +
+                                    str(index - 1)].out_channels
     else:
         for conv_block in conv_blocks:
             h_in, w_in = get_output_size(conv_block[0], h_in, w_in)
