@@ -26,8 +26,7 @@ def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
                 size=(image_size, image_size), scale=(0.7, 1.0)
             ),
             transforms.RandomAutocontrast(),
-            transforms.RandomAdjustSharpness(),
-
+            transforms.RandomAdjustSharpness(2),
             transforms.ToTensor(),
             transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)
         ]
