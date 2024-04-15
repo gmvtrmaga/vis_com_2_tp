@@ -27,8 +27,6 @@ class CustomSqueezeNet(torch.nn.Module):
         self.fc2 = torch.nn.Linear(in_features=512, out_features=1, bias=True)
 
     def forward(self, x):
-        x = torch.cat((x, x, x), axis=1)
-
         for i in range(N_LAYERS_TO_KEEP):
             x = self.squeezeNet.features[i].forward(x)
 
@@ -40,7 +38,7 @@ class SqueezeNetModelTrainConfig:
     def __init__(self, image_size: int, lr: float) -> None:
         self.model = CustomSqueezeNet(image_size)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
-        self.loss = torch.nn.BCEWithLogitsLoss()
+        self.loss = torch.nn.BCELoss()
         self.metrics = {'F1': torchmetrics.F1Score(task='binary'),
                         'Accuracy': torchmetrics.Accuracy(task='binary'),
                         'Recall': torchmetrics.Recall(task='binary'),
