@@ -14,7 +14,7 @@ from torch import manual_seed, save
 from train_utils import getTrainTestDataLoaders, trainModel
 
 DEFAULT_LEARNING_RATE = 0.0001
-DEFAULT_BATCH_SIZE = 64
+DEFAULT_BATCH_SIZE = 256
 DEFAULT_TORCH_SEED = 42
 DEFAULT_N_UNFREEZE = 1
 
@@ -81,8 +81,7 @@ def main(
         valid_loader,
         train_epochs,
         tensorboard_log=True,
-        register_path=log_output_filepath,
-        image_size=image_size,
+        register_path=log_output_filepath
     )
 
     model_path = os.path.join(model_filepath, TRAINED_MODEL_FILENAME)
