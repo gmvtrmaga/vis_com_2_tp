@@ -26,7 +26,6 @@ class CustomResNet18Net(torch.nn.Module):
         self.resNet18.fc = torch.nn.Linear(
             in_features=512, out_features=1, bias=True
         )
-
         self.act_fc = torch.nn.Sigmoid()
 
     def forward(self, x):
