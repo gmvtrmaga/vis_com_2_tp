@@ -228,7 +228,7 @@ def trainModel(
         time_iter = time_now - time_ini
 
         print(
-            "Epoch: {}/{} (Time: {:.2f} s)\n\tTrain: loss {:.6f} - Metrics {}\n\tValid: Loss {:.6f} - Metrics {}\n".format(
+            "Epoch: {}/{} (Time: {:.2f} s)\n\tTrain: Loss {:.6f} - Metrics {}\n\tValid: Loss {:.6f} - Metrics {}\n".format(
                 epoch + 1,
                 epochs,
                 time_iter,
