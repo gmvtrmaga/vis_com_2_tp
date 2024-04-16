@@ -11,12 +11,13 @@ from strategies.ConvModel import ConvModelTrainConfig
 from strategies.ResNet18Model import ResNet18ModelTrainConfig
 from strategies.SqueezeNetModel import SqueezeNetModelTrainConfig
 from torch import manual_seed, save
-from train_utils import getTrainTestDataLoaders, trainModel
+from train_utils import getTrainTestDataLoaders, getKFoldDataLoaders, trainModel
 
 DEFAULT_LEARNING_RATE = 0.0001
 DEFAULT_BATCH_SIZE = 256
 DEFAULT_TORCH_SEED = 42
 DEFAULT_N_UNFREEZE = 1
+DEFAULT_KF_SPLITS = 1
 
 TRAIN_HISTORY_FILENAME = "history.csv"
 TRAINED_MODEL_FILENAME = "model.mdl"
@@ -33,6 +34,7 @@ TRAINED_MODEL_FILENAME = "model.mdl"
 @click.option("--n_unfreeze", default=DEFAULT_N_UNFREEZE, type=click.INT)
 @click.option("--batch_size", default=DEFAULT_BATCH_SIZE, type=click.INT)
 @click.option("--learning_rate", default=DEFAULT_LEARNING_RATE, type=click.FLOAT)
+@click.option("--kf_splits", default=DEFAULT_KF_SPLITS, type=click.INT)
 def main(
     input_filepath,
     model_filepath,
@@ -44,6 +46,7 @@ def main(
     n_unfreeze=DEFAULT_N_UNFREEZE,
     batch_size=DEFAULT_BATCH_SIZE,
     learning_rate=DEFAULT_LEARNING_RATE,
+    kf_splits=DEFAULT_KF_SPLITS,
 ):
     """Trains the selected CNN model using the seleected dataset
     located at input filepath.
@@ -53,17 +56,13 @@ def main(
     logger = logging.getLogger(__name__)
     logger.info("Preparing augmentation and datasets")
 
-    train_loader, valid_loader = getTrainTestDataLoaders(
-        input_filepath, image_size, batch_size
-    )
-
     match model_to_train:
         case "ConvModel":
             logger.info("ConvModel SELECTED")
             train_config = ConvModelTrainConfig(image_size, learning_rate)
         case "SqueezeNet":
             logger.info("SqueezeNet SELECTED")
-            train_config = SqueezeNetModelTrainConfig(image_size, learning_rate)
+            train_config = SqueezeNetModelTrainConfig(n_unfreeze, learning_rate)
         case "ResNet18":
             logger.info("ResNet18 SELECTED")
             train_config = ResNet18ModelTrainConfig(n_unfreeze, learning_rate)
@@ -71,18 +70,45 @@ def main(
             logger.error("Invalid option")
             sys.exit()
 
-    logger.info("Training started")
-    train_history, trained_model = trainModel(
-        train_config.model,
-        train_config.optimizer,
-        train_config.loss,
-        train_config.metrics,
-        train_loader,
-        valid_loader,
-        train_epochs,
-        tensorboard_log=True,
-        register_path=log_output_filepath
-    )
+    if kf_splits == 1:
+        train_loader, valid_loader = getTrainTestDataLoaders(
+            input_filepath, image_size, batch_size
+        )
+
+        logger.info("Training started")
+        train_history, trained_model = trainModel(
+            train_config.model,
+            train_config.optimizer,
+            train_config.loss,
+            train_config.metrics,
+            train_loader,
+            valid_loader,
+            train_epochs,
+            tensorboard_log=True,
+            register_path=log_output_filepath,
+            n_fold=None
+        )
+    else:
+        folds = getKFoldDataLoaders(
+            kf_splits, input_filepath, image_size, batch_size
+        )
+        
+        logger.info("Training started")
+        
+        for i_fold, train_loader, valid_loader in folds:
+            print("Fold {}".format(i_fold))            
+            train_history, trained_model = trainModel(
+                train_config.model,
+                train_config.optimizer,
+                train_config.loss,
+                train_config.metrics,
+                train_loader,
+                valid_loader,
+                train_epochs,
+                tensorboard_log=True,
+                register_path=log_output_filepath,
+                n_fold=i_fold,
+            )
 
     model_path = os.path.join(model_filepath, TRAINED_MODEL_FILENAME)
     save(trained_model.state_dict(), model_path)

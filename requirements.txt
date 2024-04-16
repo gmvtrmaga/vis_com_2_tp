@@ -2,6 +2,7 @@
 click
 ipykernel
 python-dotenv
+scikit-learn
 torchmetrics
 torch-summary
 tensorboard
