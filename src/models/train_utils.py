@@ -132,7 +132,8 @@ def trainModel(
 ):
 
     if tensorboard_log:
-        clean_directory(register_path)
+        if n_fold is None or n_fold == 0:
+            clean_directory(register_path)
 
         register_path_train = os.path.join(register_path, TRAIN_DIRECTORY)
         if not n_fold is None:
