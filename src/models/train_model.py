@@ -19,8 +19,10 @@ DEFAULT_TORCH_SEED = 42
 DEFAULT_N_UNFREEZE = 1
 DEFAULT_KF_SPLITS = 1
 
-TRAIN_HISTORY_FILENAME = "history.csv"
-TRAINED_MODEL_FILENAME = "model.mdl"
+TRAIN_HISTORY_FILENAME = "_history"
+TRAIN_HISTORY_EXTENSION = ".csv"
+TRAINED_MODEL_FILENAME = "_model"
+TRAINED_MODEL_EXTENSION = ".mdl"
 
 
 @click.command()
@@ -86,17 +88,30 @@ def main(
             train_epochs,
             tensorboard_log=True,
             register_path=log_output_filepath,
-            n_fold=None
+            n_fold=None,
         )
+        model_path = os.path.join(
+            model_filepath,
+            model_to_train + TRAINED_MODEL_FILENAME + TRAINED_MODEL_EXTENSION,
+        )
+        save(trained_model.state_dict(), model_path)
+
+        history_path = os.path.join(
+            log_output_filepath,
+            model_to_train + TRAIN_HISTORY_FILENAME + TRAIN_HISTORY_EXTENSION,
+        )
+        with open(history_path, "w", newline="\n") as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(train_history.keys())
+            writer.writerows(zip(*train_history.values()))
+
     else:
-        folds = getKFoldDataLoaders(
-            kf_splits, input_filepath, image_size, batch_size
-        )
-        
+        folds = getKFoldDataLoaders(kf_splits, input_filepath, image_size, batch_size)
+
         logger.info("Training started")
-        
+
         for i_fold, train_loader, valid_loader in folds:
-            print("Fold {}".format(i_fold))            
+            print("Fold {}".format(i_fold))
             train_history, trained_model = trainModel(
                 train_config.model,
                 train_config.optimizer,
@@ -110,14 +125,27 @@ def main(
                 n_fold=i_fold,
             )
 
-    model_path = os.path.join(model_filepath, TRAINED_MODEL_FILENAME)
-    save(trained_model.state_dict(), model_path)
+            fold_name = "_fold_{}".format(i_fold + 1)
+            model_path = os.path.join(
+                model_filepath,
+                model_to_train
+                + TRAINED_MODEL_FILENAME
+                + fold_name
+                + TRAINED_MODEL_EXTENSION,
+            )
+            save(trained_model.state_dict(), model_path)
 
-    history_path = os.path.join(log_output_filepath, TRAIN_HISTORY_FILENAME)
-    with open(history_path, "w", newline="\n") as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(train_history.keys())
-        writer.writerows(zip(*train_history.values()))
+            history_path = os.path.join(
+                log_output_filepath,
+                model_to_train
+                + TRAIN_HISTORY_FILENAME
+                + fold_name
+                + TRAIN_HISTORY_EXTENSION,
+            )
+            with open(history_path, "w", newline="\n") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerow(train_history.keys())
+                writer.writerows(zip(*train_history.values()))
 
 
 if __name__ == "__main__":
