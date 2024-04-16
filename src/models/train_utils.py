@@ -3,11 +3,10 @@ import os
 import time
 from collections.abc import Iterable
 
-from sklearn.model_selection import KFold
-
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from sklearn.model_selection import KFold
 from torch.utils.tensorboard import SummaryWriter
 
 from src.data.file_utils import TRAIN_DIRECTORY, VALID_DIRECTORY, clean_directory
@@ -68,20 +67,22 @@ def getKFoldDataLoaders(splits, input_filepath, image_size, batch_size):
 
     num_total_files = len(dataset)
 
-    print(
-        "Loaded {} files.".format(num_total_files)
-    )
+    print("Loaded {} files.".format(num_total_files))
 
     for i_fold, (train_idx, valid_idx) in enumerate(folds.split(dataset)):
-        train_set = TransformDataSet(torch.utils.data.Subset(dataset, train_idx),
-                                     transform=aug_data_transforms)
-        valid_set = TransformDataSet(torch.utils.data.Subset(dataset, valid_idx),
-                                     transform=data_transforms)
+        train_set = TransformDataSet(
+            torch.utils.data.Subset(dataset, train_idx), transform=aug_data_transforms
+        )
+        valid_set = TransformDataSet(
+            torch.utils.data.Subset(dataset, valid_idx), transform=data_transforms
+        )
 
         train_loader = torch.utils.data.DataLoader(
-            train_set, batch_size=batch_size, shuffle=True)
+            train_set, batch_size=batch_size, shuffle=True
+        )
         valid_loader = torch.utils.data.DataLoader(
-            valid_set, batch_size=batch_size, shuffle=True)
+            valid_set, batch_size=batch_size, shuffle=True
+        )
 
         yield i_fold, train_loader, valid_loader
 
@@ -136,12 +137,14 @@ def trainModel(
         register_path_train = os.path.join(register_path, TRAIN_DIRECTORY)
         if not n_fold is None:
             register_path_train = os.path.join(
-                register_path_train, 'fold' + str(n_fold) + '/')
+                register_path_train, "fold" + str(n_fold) + "/"
+            )
 
         register_path_valid = os.path.join(register_path, VALID_DIRECTORY)
         if not n_fold is None:
             register_path_valid = os.path.join(
-                register_path_valid, 'fold' + str(n_fold) + '/')
+                register_path_valid, "fold" + str(n_fold) + "/"
+            )
 
         train_writer = SummaryWriter(log_dir=register_path_train)
         valid_writer = SummaryWriter(log_dir=register_path_valid)
@@ -291,10 +294,8 @@ def get_linear_from_conv_block(
 
         kernel_size = to_list(layer.kernel_size)
 
-        h_out = calculate_size(
-            h_in, padd[0], dilat[0], kernel_size[0], stride[0])
-        w_out = calculate_size(
-            w_in, padd[1], dilat[1], kernel_size[1], stride[1])
+        h_out = calculate_size(h_in, padd[0], dilat[0], kernel_size[0], stride[0])
+        w_out = calculate_size(w_in, padd[1], dilat[1], kernel_size[1], stride[1])
 
         return h_out, w_out
 
@@ -320,8 +321,7 @@ def get_linear_from_conv_block(
 
             index += 1
 
-        out_channels = object_attrs[CONV_ATTR_SUFIX +
-                                    str(index - 1)].out_channels
+        out_channels = object_attrs[CONV_ATTR_SUFIX + str(index - 1)].out_channels
     else:
         for conv_block in conv_blocks:
             h_in, w_in = get_output_size(conv_block[0], h_in, w_in)
