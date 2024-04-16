@@ -28,7 +28,7 @@ def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
             transforms.RandomAutocontrast(),
             transforms.RandomAdjustSharpness(2),
             transforms.ToTensor(),
-            transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)
+            transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD),
         ]
     )
 
@@ -36,7 +36,7 @@ def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
         [
             transforms.Resize(size=(image_size, image_size)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)
+            transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD),
         ]
     )
 
@@ -45,8 +45,17 @@ def getTrainTestDataLoaders(input_filepath, image_size, batch_size):
     train_set = torchvision.datasets.ImageFolder(
         root=os.path.join(base_path, TRAIN_DIRECTORY), transform=aug_data_transforms
     )
+    num_aug_files = len(train_set)
+
     valid_set = torchvision.datasets.ImageFolder(
         root=os.path.join(base_path, VALID_DIRECTORY), transform=data_transforms
+    )
+    num_valid_files = len(valid_set)
+
+    print(
+        "Loaded {} augmented files. Loaded {} validation files.".format(
+            num_aug_files, num_valid_files
+        )
     )
 
     train_loader = torch.utils.data.DataLoader(
@@ -68,7 +77,7 @@ def trainModel(
     valid_loader,
     epochs,
     tensorboard_log,
-    register_path
+    register_path,
 ):
 
     if tensorboard_log:
@@ -225,10 +234,8 @@ def get_linear_from_conv_block(
 
         kernel_size = to_list(layer.kernel_size)
 
-        h_out = calculate_size(
-            h_in, padd[0], dilat[0], kernel_size[0], stride[0])
-        w_out = calculate_size(
-            w_in, padd[1], dilat[1], kernel_size[1], stride[1])
+        h_out = calculate_size(h_in, padd[0], dilat[0], kernel_size[0], stride[0])
+        w_out = calculate_size(w_in, padd[1], dilat[1], kernel_size[1], stride[1])
 
         return h_out, w_out
 
@@ -254,8 +261,7 @@ def get_linear_from_conv_block(
 
             index += 1
 
-        out_channels = object_attrs[CONV_ATTR_SUFIX +
-                                    str(index - 1)].out_channels
+        out_channels = object_attrs[CONV_ATTR_SUFIX + str(index - 1)].out_channels
     else:
         for conv_block in conv_blocks:
             h_in, w_in = get_output_size(conv_block[0], h_in, w_in)
