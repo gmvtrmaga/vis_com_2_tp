@@ -66,4 +66,4 @@ On main directory, type:
 Once the dependencies are installed:
 - To run the notebook, select the environment as kernel and run the cells sequentially
 - The makefile contains all commands to run the project processes.
-    - If you cant run the makefile with your IDE you can copy the command and run it in the console. As an example: ``py src/data/make_dataset.py data/raw/train.csv data/interim/house-train.joblib data/interim/house-test.joblib data/interim/house-validation.joblib``
+    - If you cant run the makefile with your IDE you can copy the command and run it in the console. As an example: ``python src/models/train_model.py data/processed/ models/ src/models/logs/ 224 ConvModel 1 --random_state 49``
