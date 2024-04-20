@@ -3,7 +3,7 @@ import torchmetrics
 import torchvision
 
 class CustomSqueezeNet(torch.nn.Module):
-    def __init__(self, n_freeze: int, *args, **kwargs) -> None:
+    def __init__(self, n_freeze: int = 0, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.squeezeNet = torchvision.models.squeezenet1_1(

@@ -6,7 +6,7 @@ DROPOUT_P = 0.5
 
 
 class CustomResNet18Net(torch.nn.Module):
-    def __init__(self, n_freeze: int, *args, **kwargs) -> None:
+    def __init__(self, n_freeze: int = 0, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.resNet18 = torchvision.models.resnet18(
