@@ -50,7 +50,7 @@ train: data
 ## Predict
 predict: train
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/models/predict_model.py data/processed/ models/ ResNet18
+	# TO DEFINE -> src/models/predict_model.py data/processed/224/train/DDH/2.jpg models/ResNet18_model.mdl ResNet18
 
 ## Delete all compiled Python files
 clean:
