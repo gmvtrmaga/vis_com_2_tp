@@ -44,18 +44,13 @@ data: python_path
 
 ## Train models
 train: data
-	#$(PYTHON_INTERPRETER) src/models/train_model.py data/processed/ models/ src/models/logs/ 224 ConvModel 1 --random_state 49
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
 	# TO DEFINE -> src/models/train_model.py data/processed/ models/ src/models/logs/ 224 ConvModel 1 --random_state 49
 
 ## Predict
 predict: train
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/models/predict_model.py data/processed/ models/
-
-visualize: train
-	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/visualization/visualize.py models/
+	# TO DEFINE -> src/models/predict_model.py data/processed/ models/ ResNet18
 
 ## Delete all compiled Python files
 clean:
