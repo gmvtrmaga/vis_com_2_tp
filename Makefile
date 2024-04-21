@@ -35,22 +35,25 @@ python_path:
 ## Make Dataset
 data: python_path
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/data/make_dataset.py data/raw/data.zip data/interim
+	# py src/data/make_dataset.py data/raw/data.zip data/interim
 
 ## Split Dataset
 data: python_path
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/data/split_dataset.py data/interim data/processed --random_state 49 --train_size 0.66
+	# py src/data/split_dataset.py data/interim data/processed --random_state 49 --train_size 0.66
 
 ## Train models
 train: data
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/models/train_model.py data/processed/ models/ src/models/logs/ 224 ConvModel 1 --random_state 49
+	# py src/models/train_model.py data/interim/ models/ src/models/logs/ 224 ResNet18 50 --random_state 321432 --learning_rate 0.00025 --n_unfreeze 2 --batch_size 512 --kf_splits 4
+	# py src/models/train_model.py data/processed/ models/ src/models/logs/ 224 SqueezeNet 800 --random_state 321432 --learning_rate 0.001 --n_unfreeze 4 --batch_size 512
+	# py src/models/train_model.py data/processed/ models/ src/models/logs/ 224 ConvModel 100 --random_state 321432 --learning_rate 0.0001 --batch_size 512 --kf_splits 2
+
 
 ## Predict
 predict: train
 	$ export PYTHONPATH=$$PYTHONPATH:$(PYTHONPATH); echo $$PYTHONPATH; $(PYTHON_INTERPRETER) 
-	# TO DEFINE -> src/models/predict_model.py data/processed/224/train/DDH/2.jpg models/ResNet18_model.mdl ResNet18
+	# py src/models/predict_model.py data/processed/224/train/DDH/2.jpg models/ResNet18_model.mdl ResNet18
 
 ## Delete all compiled Python files
 clean:

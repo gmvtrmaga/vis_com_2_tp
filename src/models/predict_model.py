@@ -9,7 +9,7 @@ from pathlib import Path
 from PIL import Image
 
 import torch
-from src.models.train_utils import getDataTransoforms
+from train_utils import getDataTransoforms
 
 from strategies.ConvModel import ConvModel
 from strategies.ResNet18Model import CustomResNet18Net
@@ -54,7 +54,7 @@ def main(input_filepath, model_filepath, model_to_train):
     model.load_state_dict(torch.load(model_filepath))
 
     logger.info("Prediction result")
-    if model(model_input[None, :, :, :])[0] > 0.5:
+    if model(model_input[None, :, :, :])[0] < 0.5:
         logger.info("Result: Normal")
     else:
         logger.info("Result: DDH detected")
