@@ -51,13 +51,15 @@ def main(input_filepath, model_filepath, model_to_train):
             sys.exit()
 
     logger.info("Loading model")
-    model.load_state_dict(torch.load(model_filepath))
+    model.load_state_dict(torch.load(model_filepath, map_location=torch.device('cpu')))
+    model.eval()
 
     logger.info("Prediction result")
-    if model(model_input[None, :, :, :])[0] < 0.5:
-        logger.info("Result: Normal")
-    else:
+    prediction = model(model_input[None, :, :, :]) 
+    if prediction <= 0.5:
         logger.info("Result: DDH detected")
+    else:
+        logger.info("Result: Normal")        
 
 if __name__ == "__main__":
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
